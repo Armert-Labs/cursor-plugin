@@ -7,12 +7,32 @@
 ![Cursor cursor-agent](https://img.shields.io/badge/Cursor-cursor--agent-2563EB)
 ![Zero dependencies](https://img.shields.io/badge/deps-0-success)
 ![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)
+[![Install](https://img.shields.io/badge/install-cursor%40cursor--plugin-2563EB)](#quick-start)
 
 Use [Cursor](https://cursor.com)'s agentic CLI (`cursor-agent`) from inside **Claude Code** — delegate coding tasks, rescue stuck work, and run code reviews without leaving your Claude session, on whichever model you choose **per call**.
 
 It mirrors the command surface of OpenAI's [`codex-plugin-cc`](https://github.com/openai/codex-plugin-cc) but targets Cursor. Because `cursor-agent` exposes a simple headless interface (`-p --output-format json`), there is no app-server or broker — the plugin just shells out to `cursor-agent` and parses its output.
 
 > Unofficial community plugin by [Armert Labs](https://github.com/Armert-Labs). Not affiliated with Anysphere (Cursor) or Anthropic.
+
+<p align="center"><img src="./assets/demo.svg" alt="cursor-plugin in Claude Code: setup, a code review with a real finding, and job status" width="820"></p>
+
+---
+
+## Quick start
+
+Install from this repo's **self-hosted marketplace** — no directory approval, no fee.
+Inside Claude Code:
+
+```text
+/plugin marketplace add Armert-Labs/cursor-plugin   # 1. add this repo as a marketplace
+/plugin install cursor@cursor-plugin                # 2. install the plugin
+/cursor:setup                                       # 3. verify cursor-agent is ready
+```
+
+Then `/cursor:review` to review your changes, or `/cursor:rescue <task>` to delegate
+work to Cursor. You'll need an installed, authenticated `cursor-agent` first — the
+[full setup](#installation-step-by-step) takes about a minute.
 
 ---
 
@@ -74,6 +94,7 @@ Latest finished:
 
 ## Table of contents
 
+- [Quick start](#quick-start)
 - [Demo](#demo)
 - [Why this plugin](#why-this-plugin)
 - [Requirements](#requirements)

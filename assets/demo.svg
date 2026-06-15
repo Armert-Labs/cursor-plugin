@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="452" viewBox="0 0 860 452" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15">
+  <rect x="1" y="1" width="858" height="450" rx="10" fill="#0d1117" stroke="#30363d"/>
+  <rect x="1" y="1" width="858" height="40" rx="10" fill="#161b22"/>
+  <rect x="1" y="28" width="858" height="13" fill="#161b22"/>
+  <circle cx="24" cy="21" r="6" fill="#ff5f57"/>
+  <circle cx="44" cy="21" r="6" fill="#febc2e"/>
+  <circle cx="64" cy="21" r="6" fill="#28c840"/>
+  <text x="430" y="26" fill="#8b949e" text-anchor="middle">cursor-plugin · Claude Code</text>
+
+  <text x="28" y="74"><tspan fill="#3fb950">$ </tspan><tspan fill="#79c0ff">/cursor:setup</tspan></text>
+  <text x="28" y="99" fill="#8b949e"># Cursor Setup · Status: <tspan fill="#3fb950">ready</tspan></text>
+  <text x="28" y="121" fill="#3fb950">  node ✓   cursor-agent ✓   auth ✓   review gate: off</text>
+
+  <text x="28" y="160"><tspan fill="#3fb950">$ </tspan><tspan fill="#79c0ff">/cursor:review --model review</tspan><tspan fill="#6e7681">   # read-only</tspan></text>
+  <text x="28" y="185" fill="#8b949e"># Cursor Review · working tree diff · Verdict: <tspan fill="#d29922">needs-attention</tspan></text>
+  <text x="28" y="210" fill="#c9d1d9">Findings:</text>
+  <text x="28" y="235" fill="#c9d1d9">- <tspan fill="#f85149">[high]</tspan> Stale timers delete refreshed cache entries <tspan fill="#6e7681">(src/cache.js:3-5)</tspan></text>
+  <text x="28" y="258" fill="#8b949e">  A later set() can be evicted by an earlier timer before its TTL.</text>
+  <text x="28" y="281" fill="#8b949e">  Recommendation: track a per-key token; clear the old timer on set.</text>
+
+  <text x="28" y="320"><tspan fill="#3fb950">$ </tspan><tspan fill="#79c0ff">/cursor:status</tspan></text>
+  <text x="28" y="345" fill="#c9d1d9">- review-mqfficjs · completed · Cursor Review · 1m 5s</text>
+  <text x="28" y="368" fill="#58a6ff">  Resume in Cursor: cursor-agent --resume b9de94c9…</text>
+
+  <text x="28" y="415" fill="#6e7681">delegate tasks · review code · pick the model per call</text>
+</svg>
