@@ -15,7 +15,7 @@ It mirrors the command surface of OpenAI's [`codex-plugin-cc`](https://github.co
 
 > Unofficial community plugin by [Armert Labs](https://github.com/Armert-Labs). Not affiliated with Anysphere (Cursor) or Anthropic.
 
-<p align="center"><img src="./assets/demo.svg" alt="cursor-plugin in Claude Code: setup, a code review with a real finding, and job status" width="820"></p>
+<p align="center"><img src="./assets/demo.gif" alt="cursor-plugin in Claude Code: setup, then a code review that flags a real TTL bug in an in-memory cache" width="880"></p>
 
 ---
 
