@@ -1,4 +1,10 @@
+<div align="center">
+
 # cursor-plugin
+
+### Run [Cursor](https://cursor.com)'s `cursor-agent` from inside **Claude Code**
+
+Delegate tasks · rescue stuck work · review code — on the model you pick, **per call**.
 
 [![CI](https://github.com/Armert-Labs/cursor-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/Armert-Labs/cursor-plugin/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
@@ -6,40 +12,63 @@
 ![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-8A2BE2)
 ![Cursor cursor-agent](https://img.shields.io/badge/Cursor-cursor--agent-2563EB)
 ![Zero dependencies](https://img.shields.io/badge/deps-0-success)
-![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)
 [![Install](https://img.shields.io/badge/install-cursor%40cursor--plugin-2563EB)](#quick-start)
 
-Use [Cursor](https://cursor.com)'s agentic CLI (`cursor-agent`) from inside **Claude Code** — delegate coding tasks, rescue stuck work, and run code reviews without leaving your Claude session, on whichever model you choose **per call**.
+<img src="./assets/demo.gif" alt="cursor-plugin in Claude Code: setup, then a code review that flags a real TTL bug in an in-memory cache" width="860">
 
-It mirrors the command surface of OpenAI's [`codex-plugin-cc`](https://github.com/openai/codex-plugin-cc) but targets Cursor. Because `cursor-agent` exposes a simple headless interface (`-p --output-format json`), there is no app-server or broker — the plugin just shells out to `cursor-agent` and parses its output.
+<a href="#quick-start"><b>Quick start</b></a> ·
+<a href="#commands"><b>Commands</b></a> ·
+<a href="#models"><b>Models</b></a> ·
+<a href="#how-it-works"><b>How it works</b></a> ·
+<a href="./examples/README.md"><b>Examples</b></a>
 
-> Unofficial community plugin by [Armert Labs](https://github.com/Armert-Labs). Not affiliated with Anysphere (Cursor) or Anthropic.
-
-<p align="center"><img src="./assets/demo.gif" alt="cursor-plugin in Claude Code: setup, then a code review that flags a real TTL bug in an in-memory cache" width="880"></p>
+</div>
 
 ---
 
-## Quick start
+> [!NOTE]
+> Unofficial community plugin by [Armert Labs](https://github.com/Armert-Labs). Not affiliated with Anysphere (Cursor) or Anthropic.
 
-Install from this repo's **self-hosted marketplace** — no directory approval, no fee.
+It mirrors the command surface of OpenAI's [`codex-plugin-cc`](https://github.com/openai/codex-plugin-cc) but targets Cursor. Because `cursor-agent` exposes a simple headless interface (`-p --output-format json`), there's no app-server or broker — the plugin just shells out to `cursor-agent` and parses its output.
+
+## ✨ Features
+
+|   | |
+| --- | --- |
+| 🧠 **Any model, per call** | Pick `composer`, `gpt-5.x`, `claude-opus`… on every command. No hardcoded default. |
+| ✍️ **Write or read-only** | `/cursor:rescue` edits files by default; `--read-only` analyzes without touching them. |
+| 🔍 **Structured reviews** | `/cursor:review` returns severity-sorted findings with `file:line` and concrete fixes. |
+| ⏱️ **Background jobs** | Fire-and-forget with `--background`, then `status` / `result` / `cancel`. |
+| ↩️ **Resumable** | Every run yields a Cursor chat id you can pick back up. |
+| 🛡️ **Optional stop-gate** | Have Cursor sign off on the last turn before a session ends. |
+| 👥 **Team orchestration** | Send different tasks to different models, in parallel. |
+| 📦 **Zero dependencies** | Pure Node built-ins · hermetic tests · nothing fetched at runtime. |
+
+<a id="quick-start"></a>
+
+## 🚀 Quick start
+
+> [!TIP]
+> This repo **is** the marketplace — install works immediately, with **no directory approval and no fee**.
+
 Inside Claude Code:
 
 ```text
-/plugin marketplace add Armert-Labs/cursor-plugin   # 1. add this repo as a marketplace
-/plugin install cursor@cursor-plugin                # 2. install the plugin
-/cursor:setup                                       # 3. verify cursor-agent is ready
+/plugin marketplace add Armert-Labs/cursor-plugin   # 1 · add this repo as a marketplace
+/plugin install cursor@cursor-plugin                # 2 · install the plugin
+/cursor:setup                                       # 3 · verify cursor-agent is ready
 ```
 
-Then `/cursor:review` to review your changes, or `/cursor:rescue <task>` to delegate
-work to Cursor. You'll need an installed, authenticated `cursor-agent` first — the
-[full setup](#installation-step-by-step) takes about a minute.
+Then `/cursor:review` to review your changes, or `/cursor:rescue <task>` to delegate work to Cursor. You'll need an installed, authenticated `cursor-agent` first — the [full setup](#installation) takes about a minute.
 
----
+## 🎬 See it in action
 
-## Demo
+The animated demo at the top is a **real** `/cursor:review`. Here's the same kind of session, frozen for a quick read:
 
-A real session — type the `/cursor:` commands in Claude Code and Cursor's output
-comes back inline (here, reviewing an in-memory cache that just grew a `ttl` option):
+<p align="center"><img src="./assets/demo.svg" alt="A /cursor: session: setup, a review with a real finding, and job status" width="820"></p>
+
+<details>
+<summary><b>The same session as copyable text</b></summary>
 
 ```console
 > /cursor:setup
@@ -77,9 +106,6 @@ Findings:
 
 > /cursor:status
 # Cursor Status
-Session runtime: direct
-Review gate: disabled
-
 Latest finished:
 - review-mqfficjs | completed | review | Cursor Review
   Phase: done   Duration: 1m 5s
@@ -87,46 +113,9 @@ Latest finished:
   Resume in Cursor: cursor-agent --resume b9de94c9-f185-4044-9f28-242570bc9d43
 ```
 
-> Prefer an animated GIF? A [VHS](https://github.com/charmbracelet/vhs) tape is in
-> [`assets/demo.tape`](./assets/demo.tape) — run `vhs assets/demo.tape` to record one.
+</details>
 
----
-
-## Table of contents
-
-- [Quick start](#quick-start)
-- [Demo](#demo)
-- [Why this plugin](#why-this-plugin)
-- [Requirements](#requirements)
-- [Installation (step by step)](#installation-step-by-step)
-  - [1. Install the Cursor CLI](#1-install-the-cursor-cli)
-  - [2. Authenticate the Cursor CLI](#2-authenticate-the-cursor-cli)
-  - [3. Add the marketplace & install the plugin](#3-add-the-marketplace--install-the-plugin)
-  - [4. Run setup & verify](#4-run-setup--verify)
-  - [Updating & uninstalling](#updating--uninstalling)
-- [Commands (comprehensive)](#commands-comprehensive)
-  - [`/cursor:setup`](#cursorsetup)
-  - [`/cursor:rescue`](#cursorrescue)
-  - [`/cursor:review`](#cursorreview)
-  - [`/cursor:adversarial-review`](#cursoradversarial-review)
-  - [`/cursor:status`](#cursorstatus)
-  - [`/cursor:result`](#cursorresult)
-  - [`/cursor:cancel`](#cursorcancel)
-- [Choosing a model](#choosing-a-model)
-- [Foreground vs background jobs](#foreground-vs-background-jobs)
-- [Resuming work](#resuming-work)
-- [The stop-time review gate](#the-stop-time-review-gate)
-- [Team orchestration (multi-model)](#team-orchestration-multi-model)
-- [How it works](#how-it-works)
-- [Where state is stored](#where-state-is-stored)
-- [Troubleshooting](#troubleshooting)
-- [Security & safety notes](#security--safety-notes)
-- [Development](#development)
-- [License](#license)
-
----
-
-## Why this plugin
+## 💡 Why this plugin
 
 Claude Code is great, but sometimes you want a **second agent** on the job:
 
@@ -135,9 +124,9 @@ Claude Code is great, but sometimes you want a **second agent** on the job:
 - a **parallel teammate** so two pieces of work happen at once,
 - or a steerable **code reviewer** that never touches your files.
 
-`cursor-plugin` lets Claude hand any of these off to Cursor's `cursor-agent` and bring the result back inline — you pick the model on every call.
+`cursor-plugin` lets Claude hand any of these off to Cursor's `cursor-agent` and bring the result back inline — and you pick the model on every call.
 
-## Requirements
+## 📋 Requirements
 
 | Requirement | Notes |
 | --- | --- |
@@ -146,11 +135,11 @@ Claude Code is great, but sometimes you want a **second agent** on the job:
 | **Cursor CLI (`cursor-agent`)** | Installed and authenticated (steps below). |
 | **A Cursor account** | Any tier works (including free). Usage is billed against your Cursor plan. |
 
----
+<a id="installation"></a>
 
-## Installation (step by step)
+## 📦 Installation
 
-### 1. Install the Cursor CLI
+### 1 · Install the Cursor CLI
 
 **macOS / Linux:**
 
@@ -158,75 +147,54 @@ Claude Code is great, but sometimes you want a **second agent** on the job:
 curl https://cursor.com/install -fsS | bash
 ```
 
-This installs `cursor-agent` (typically to `~/.local/bin`). Restart your shell or
-ensure that directory is on your `PATH`, then confirm:
+This installs `cursor-agent` (typically to `~/.local/bin`). Restart your shell or ensure that directory is on your `PATH`, then confirm:
 
 ```bash
-cursor-agent --version
-# e.g. 2026.06.15-...
+cursor-agent --version    # e.g. 2026.06.15-...
 ```
 
-**Windows:** follow the official instructions at <https://cursor.com/docs/cli>.
-The plugin runs `cursor-agent` without a shell for safety, so `cursor-agent` must
-be directly invokable on your `PATH` (WSL is the smoothest path on Windows).
+**Windows:** follow the official instructions at <https://cursor.com/docs/cli>. The plugin runs `cursor-agent` without a shell for safety, so `cursor-agent` must be directly invokable on your `PATH` (WSL is the smoothest path on Windows).
 
-### 2. Authenticate the Cursor CLI
-
-Interactive (opens a browser, recommended for local use):
+### 2 · Authenticate the Cursor CLI
 
 ```bash
-cursor-agent login
-cursor-agent status        # → ✓ Logged in as you@example.com
+cursor-agent login        # opens a browser; recommended for local use
+cursor-agent status       # → ✓ Logged in as you@example.com
 ```
 
-Headless / CI (no browser):
+For headless / CI use (no browser), set an API key instead: `export CURSOR_API_KEY="…"` (from the Cursor dashboard).
 
-```bash
-export CURSOR_API_KEY="your_api_key"   # from the Cursor dashboard
-```
+### 3 · Add the marketplace & install the plugin
 
-### 3. Add the marketplace & install the plugin
-
-This plugin is distributed through its **own self-hosted marketplace** — this very
-GitHub repo. That's a first-class Claude Code distribution method: it works
-immediately, needs **no Anthropic directory approval**, and you keep control of
-versions. (Claude Code can add any git repo whose root contains a
-`.claude-plugin/marketplace.json`.)
-
-Inside Claude Code, run:
+This plugin is distributed through its **own self-hosted marketplace** — this very GitHub repo. That's a first-class Claude Code distribution method: it works immediately, needs **no Anthropic directory approval**, and you keep control of versions. (Claude Code can add any git repo whose root contains a `.claude-plugin/marketplace.json`.)
 
 ```text
 /plugin marketplace add Armert-Labs/cursor-plugin
 /plugin install cursor@cursor-plugin
 ```
 
-- `/plugin marketplace add Armert-Labs/cursor-plugin` registers this repo as a
-  plugin source (Claude Code reads `.claude-plugin/marketplace.json` at the root).
-- `/plugin install cursor@cursor-plugin` installs the `cursor` plugin from the
-  `cursor-plugin` marketplace.
-- **Reload when prompted** (or restart Claude Code) so the new slash commands,
-  the `cursor:cursor-rescue` agent, and the hooks load.
+- `marketplace add` registers this repo as a plugin source (Claude Code reads `.claude-plugin/marketplace.json` at the root).
+- `install cursor@cursor-plugin` installs the `cursor` plugin from the `cursor-plugin` marketplace.
+- **Reload when prompted** (or restart Claude Code) so the new slash commands, the `cursor:cursor-rescue` agent, and the hooks load.
 
-**Verify it loaded:** open `/plugin` and you'll see **cursor** under *Installed*,
-or run `/help` and look for the `/cursor:*` commands.
+**Verify it loaded:** open `/plugin` and you'll see **cursor** under *Installed*, or run `/help` and look for the `/cursor:*` commands.
 
-**Local development install** (from a checkout instead of GitHub):
+> [!NOTE]
+> **Local development install** — point the marketplace at a checkout instead of GitHub:
+> ```text
+> /plugin marketplace add /absolute/path/to/cursor-plugin
+> /plugin install cursor@cursor-plugin
+> ```
 
-```text
-/plugin marketplace add /absolute/path/to/cursor-plugin
-/plugin install cursor@cursor-plugin
-```
-
-### 4. Run setup & verify
+### 4 · Run setup & verify
 
 ```text
 /cursor:setup
 ```
 
-`/cursor:setup` prints a readiness report and tells you exactly what (if anything)
-is missing:
+`/cursor:setup` prints a readiness report and tells you exactly what (if anything) is missing — and it never installs or logs in *for* you:
 
-```
+```text
 # Cursor Setup
 Status: ready
 Checks:
@@ -237,10 +205,6 @@ Checks:
 - review gate: disabled
 ```
 
-- If **cursor-agent is missing**, it points you to the install command above.
-- If **not authenticated**, it tells you to run `cursor-agent login`.
-- It never installs or logs in *for* you — those stay in your hands.
-
 You're ready. Try `/cursor:rescue --read-only summarize what this repo does`.
 
 ### Updating & uninstalling
@@ -250,17 +214,13 @@ You're ready. Try `/cursor:rescue --read-only summarize what this repo does`.
 /plugin uninstall cursor@cursor-plugin       # remove the plugin
 ```
 
----
+<a id="commands"></a>
 
-## Commands (comprehensive)
+## 🧩 Commands
 
-All commands are namespaced under `/cursor:`. Below, "the companion" refers to the
-bundled `cursor-companion.mjs` script that each command calls; you normally never
-invoke it directly.
+All commands are namespaced under `/cursor:`. They're thin wrappers around a bundled `cursor-companion.mjs` script you never call directly.
 
-### `/cursor:setup`
-
-**Purpose:** verify the toolchain and manage the optional review gate.
+### `/cursor:setup` — check the toolchain & toggle the review gate
 
 ```text
 /cursor:setup
@@ -271,17 +231,14 @@ invoke it directly.
 | Flag | Effect |
 | --- | --- |
 | *(none)* | Print the readiness report (node, cursor-agent, auth, review-gate state). |
-| `--enable-review-gate` | Turn on the [stop-time review gate](#the-stop-time-review-gate) for this repo. |
+| `--enable-review-gate` | Turn on the [stop-time review gate](#stop-time-review-gate) for this repo. |
 | `--disable-review-gate` | Turn it off again. |
 
 The gate setting is **per repository** and persisted on disk.
 
-### `/cursor:rescue`
+### `/cursor:rescue` — delegate a task to Cursor
 
-**Purpose:** hand a real task to Cursor — investigate a bug, implement a change,
-or continue earlier work. This is the main "do something" command. It runs through
-a thin forwarding subagent (`cursor:cursor-rescue`) and returns Cursor's output
-verbatim.
+The main "do something" command: investigate a bug, implement a change, or continue earlier work. It runs through a thin forwarding subagent (`cursor:cursor-rescue`) and returns Cursor's output verbatim.
 
 ```text
 /cursor:rescue <what Cursor should do>
@@ -293,25 +250,19 @@ verbatim.
 
 | Flag | Default | Meaning |
 | --- | --- | --- |
-| *(positional text)* | — | The task. Natural language. |
-| `--read-only` | off | Analysis/diagnosis only — Cursor reads and answers but **does not edit** (`cursor-agent --mode ask`). |
+| *(positional text)* | — | The task, in natural language. |
+| `--read-only` | off | Analysis only — Cursor reads and answers but **does not edit** (`cursor-agent --mode ask`). |
 | *(no `--read-only`)* | **on** | **Write-capable** — Cursor may edit files in the working tree (`cursor-agent --force`). |
-| `--model <model\|alias>` | account default | Route this task to a specific model. See [Choosing a model](#choosing-a-model). |
+| `--model <model\|alias>` | account default | Route this task to a specific [model](#models). |
 | `--background` / `--wait` | `--wait` | Run detached (Claude keeps working) or in the foreground (Claude waits). |
 | `--resume` / `--fresh` | ask | Continue the latest Cursor chat in this repo, or start a fresh one. |
 
-**Key behavior:** rescue is **write-capable by default**. Add `--read-only` when
-you only want analysis. When neither `--resume` nor `--fresh` is given and a
-previous chat exists, Claude asks once whether to continue it.
+> [!IMPORTANT]
+> Rescue is **write-capable by default** — it can edit your working tree. Add `--read-only` when you only want analysis. The `cursor:cursor-rescue` subagent is also used **proactively**: when Claude is stuck, it can delegate to Cursor on its own.
 
-The `cursor:cursor-rescue` subagent is also used **proactively**: when Claude is
-stuck or wants a second pass, it can delegate to Cursor on its own.
+### `/cursor:review` — structured, read-only code review
 
-### `/cursor:review`
-
-**Purpose:** a structured, **read-only** code review of your current git changes.
-Cursor never edits anything here. Output is sorted by severity with file:line
-references.
+A severity-sorted review of your current git changes with `file:line` references. Cursor never edits anything here.
 
 ```text
 /cursor:review
@@ -325,16 +276,13 @@ references.
 | `--base <ref>` | auto | Review the diff against a base branch/ref (e.g. `main`). |
 | `--scope auto\|working-tree\|branch` | `auto` | What to review. `auto` = uncommitted changes if dirty, else branch diff. |
 | `--model <model\|alias>` | account default | Model to review with (e.g. `--model review`). |
-| `--wait` / `--background` | asks | Run in the foreground, or detached as a background job. |
+| `--wait` / `--background` | asks | Foreground, or detached as a background job. |
 
-If you don't pass `--wait`/`--background`, Claude estimates the change size and
-asks whether to wait or run in the background.
+If you don't pass `--wait`/`--background`, Claude estimates the change size and asks which to use.
 
-### `/cursor:adversarial-review`
+### `/cursor:adversarial-review` — challenge the approach
 
-**Purpose:** like `/cursor:review`, but framed to **challenge the approach** —
-design choices, assumptions, tradeoffs, failure modes — not just surface defects.
-Also **read-only**. Unlike `/cursor:review`, it accepts optional **focus text**.
+Like `/cursor:review`, but framed to **challenge** the design — choices, assumptions, tradeoffs, failure modes — not just surface defects. Also **read-only**. Unlike `/cursor:review`, it accepts optional **focus text**.
 
 ```text
 /cursor:adversarial-review
@@ -344,60 +292,24 @@ Also **read-only**. Unlike `/cursor:review`, it accepts optional **focus text**.
 
 Same flags as `/cursor:review`, plus trailing free-text focus.
 
-### `/cursor:status`
-
-**Purpose:** see active and recent Cursor jobs for this repository.
+### `/cursor:status` · `/cursor:result` · `/cursor:cancel` — manage jobs
 
 ```text
-/cursor:status                         # compact table of this session's jobs
-/cursor:status <job-id>                # full detail for one job
-/cursor:status <job-id> --wait         # block until that job finishes
-/cursor:status --all                   # include older jobs
+/cursor:status                 # compact table of this session's jobs
+/cursor:status <job-id> --wait # block until a job finishes
+/cursor:result [job-id]        # the stored output of a finished job
+/cursor:cancel [job-id]        # stop an active background job
 ```
 
-| Flag | Meaning |
-| --- | --- |
-| `<job-id>` | Show one job in detail (accepts a unique id prefix). |
-| `--wait` | Poll until the given job leaves the queued/running state. |
-| `--timeout-ms <ms>` | Cap how long `--wait` polls (default ~4 min). |
-| `--all` | List all retained jobs, not just the recent window. |
+- **`status`** rows show kind (rescue/review/adversarial-review), status, phase, elapsed time, the **Cursor chat id**, and follow-up commands. `--all` includes older jobs; `--timeout-ms` caps `--wait`.
+- **`result`** prints the full output (review findings or rescue answer), token usage, the chat id, and a `cursor-agent --resume <chatId>` hint.
+- **`cancel`** signals the detached worker's process group; a concurrent finish won't overwrite a cancellation.
 
-Each row shows the kind (rescue/review/adversarial-review), status, phase, elapsed
-time, the **Cursor chat id**, and follow-up commands.
+<a id="models"></a>
 
-### `/cursor:result`
+## 🧠 Models
 
-**Purpose:** print the stored final output of a finished job.
-
-```text
-/cursor:result            # most recent finished job in this session
-/cursor:result <job-id>   # a specific job
-```
-
-Includes the full output (review verdict/findings or rescue answer), token usage,
-the **Cursor chat id**, and a `cursor-agent --resume <chatId>` hint so you can pick
-the conversation back up in Cursor directly.
-
-### `/cursor:cancel`
-
-**Purpose:** stop an active background job.
-
-```text
-/cursor:cancel            # the single active job in this session
-/cursor:cancel <job-id>   # a specific job
-```
-
-Cancellation signals the detached worker's process group and marks the job
-`cancelled`. A concurrent finish won't overwrite a cancellation.
-
----
-
-## Choosing a model
-
-There is **no hardcoded default model**. When you omit `--model`, `cursor-agent`
-uses your account's configured default. Otherwise pick per call. Aliases are
-conveniences; **any** concrete `cursor-agent` model id also works
-(`cursor-agent --list-models` shows the full list).
+There is **no hardcoded default model**. When you omit `--model`, `cursor-agent` uses your account's configured default. Otherwise pick per call. Aliases are conveniences; **any** concrete `cursor-agent` model id also works (`cursor-agent --list-models` lists them).
 
 | Alias | Resolves to | Best for |
 | --- | --- | --- |
@@ -408,51 +320,41 @@ conveniences; **any** concrete `cursor-agent` model id also works
 | `opus` | `claude-opus-4-8-high` | A second opinion from a different model family |
 
 ```text
-/cursor:review --model review                       # strong reviewer
-/cursor:rescue --model spark fix the lint errors      # cheap & fast
-/cursor:rescue --model some-exact-model-id do X        # any cursor-agent model id
+/cursor:review --model review                  # strong reviewer
+/cursor:rescue --model spark fix the lint errors # cheap & fast
+/cursor:rescue --model some-exact-model-id do X  # any cursor-agent model id
 ```
 
-The model that actually ran is reported back (in `/cursor:result` and
-`/cursor:status`) so you always know what produced an answer.
+The model that actually ran is reported back (in `/cursor:result` and `/cursor:status`), so you always know what produced an answer.
 
-## Foreground vs background jobs
+## 🔀 Foreground vs background jobs
 
-- **Foreground** (`--wait`, the default for rescue): Claude waits for Cursor and
-  returns the result in the same turn. Simple; best for short tasks. `cursor-agent`
-  has noticeable startup latency, so long tasks are better backgrounded.
-- **Background** (`--background`): the task runs in a detached worker. Claude keeps
-  working and you track it with `/cursor:status`, fetch it with `/cursor:result`,
-  and stop it with `/cursor:cancel`. Progress is streamed to a per-job log.
+- **Foreground** (`--wait`, the rescue default): Claude waits and returns the result in the same turn. Best for short tasks — `cursor-agent` has noticeable startup latency, so long tasks are better backgrounded.
+- **Background** (`--background`): the task runs in a detached worker. Claude keeps working; you track it with `/cursor:status`, fetch it with `/cursor:result`, and stop it with `/cursor:cancel`. Progress streams to a per-job log.
 
-## Resuming work
+## ↩️ Resuming work
 
-Every Cursor run returns a **chat id** (`session_id`). The plugin stores it so you
-can continue the same conversation:
+Every Cursor run returns a **chat id** (`session_id`), stored so you can continue the same conversation:
 
 - `/cursor:rescue --resume keep going` continues the latest rescue chat in this repo.
-- `/cursor:result` prints `cursor-agent --resume <chatId>` if you'd rather continue
-  inside the Cursor app/CLI directly.
+- `/cursor:result` prints `cursor-agent --resume <chatId>` to continue inside Cursor directly.
 
 Resume candidates are scoped to your current Claude session.
 
-## The stop-time review gate
+<a id="stop-time-review-gate"></a>
 
-An **optional** safety net. When enabled (`/cursor:setup --enable-review-gate`),
-Claude runs a quick **read-only** Cursor review of the *previous* turn before the
-session is allowed to stop:
+## 🛡️ The stop-time review gate
 
-- Cursor answers `ALLOW: …` → the session stops normally.
-- Cursor answers `BLOCK: <reason>` → Claude is told to keep working and fix it first.
+An **optional** safety net. When enabled (`/cursor:setup --enable-review-gate`), Claude runs a quick **read-only** Cursor review of the *previous* turn before the session is allowed to stop:
 
-It only reviews turns that actually changed code, and it can never edit anything.
-**Disabled by default.** Turn it off with `/cursor:setup --disable-review-gate`.
+- `ALLOW: …` → the session stops normally.
+- `BLOCK: <reason>` → Claude is told to keep working and fix it first.
 
-## Team orchestration (multi-model)
+It only reviews turns that actually changed code, and it can never edit anything. **Disabled by default.**
 
-Because the model is chosen per call, you can run a **team**: dispatch one task to
-Composer and another to a stronger model in parallel, then review with a third.
-Driven straight from Claude:
+## 👥 Team orchestration (multi-model)
+
+Because the model is chosen per call, you can run a **team**: dispatch one task to Composer and another to a stronger model in parallel, then review with a third.
 
 ```text
 /cursor:rescue --background --model spark  implement slugify(str) in slug.js
@@ -461,36 +363,34 @@ Driven straight from Claude:
 /cursor:review --model review               # review the combined result, read-only
 ```
 
-A runnable orchestrator and a full walkthrough (including extending to a
-cross-tool team with OpenAI Codex) live in **[`examples/`](./examples/README.md)**.
+A runnable orchestrator and a full walkthrough (including a cross-tool team with OpenAI Codex) live in **[`examples/`](./examples/README.md)**.
 
-> ⚠️ Two write-capable jobs editing the **same** files at once will clobber each
-> other. Give each parallel writer its own files, or keep all-but-one read-only.
+> [!WARNING]
+> Two write-capable jobs editing the **same** files at once will clobber each other. Give each parallel writer its own files, or keep all-but-one read-only.
 
-## How it works
+<a id="how-it-works"></a>
 
-```
-You ──/cursor:rescue──▶ cursor:cursor-rescue (subagent, thin forwarder)
+## ⚙️ How it works
+
+```text
+You ──/cursor:rescue──▶ cursor:cursor-rescue  (subagent · thin forwarder)
                               │  one Bash call
                               ▼
-                    cursor-companion.mjs  (dispatcher)
-                              │  spawn, parse json / stream-json
+                    cursor-companion.mjs       (dispatcher)
+                              │  spawn · parse json / stream-json
                               ▼
                          cursor-agent  -p --output-format json --trust …
 ```
 
 - **Commands** are thin: they shell out to the companion and return its output.
-- **`cursor:cursor-rescue`** is a forwarding subagent — it makes exactly one call
-  and returns Cursor's output verbatim (no second-guessing, no hidden edits).
-- **`cursor-companion.mjs`** builds the `cursor-agent` argv, runs it, parses the
-  result (`json` for one-shot, `stream-json` for live progress), tracks jobs, and
-  renders output.
-- **Reviews** collect a git diff context and ask Cursor for structured JSON, which
-  is validated and rendered by severity.
+- **`cursor:cursor-rescue`** makes exactly one call and returns Cursor's output verbatim — no second-guessing, no hidden edits.
+- **`cursor-companion.mjs`** builds the `cursor-agent` argv, runs it, parses the result (`json` for one-shot, `stream-json` for live progress), tracks jobs, and renders output.
+- **Reviews** collect a git-diff context and ask Cursor for structured JSON, validated and rendered by severity.
 
-Repository layout:
+<details>
+<summary><b>Repository layout</b></summary>
 
-```
+```text
 plugins/cursor/
   commands/      slash commands (setup, rescue, review, adversarial-review, status, result, cancel)
   agents/        cursor-rescue — the forwarding subagent
@@ -506,52 +406,54 @@ examples/        runnable orchestration examples
 tests/           hermetic node --test suite (fake cursor-agent)
 ```
 
-## Where state is stored
+</details>
+
+## 🗂️ Where state is stored
 
 Per-workspace job records, logs, and the review-gate setting live under:
 
-```
+```text
 ~/.claude/cursor-companion/workspaces/<repo-slug>-<hash>/
   state.json          # config + job list
   jobs/<id>.json      # per-job record (incl. chat id, result)
   jobs/<id>.log       # streamed progress
 ```
 
-When run inside Claude Code, the plugin uses its provided data directory instead.
-State is **per repository**; jobs are scoped to your Claude session.
+When run inside Claude Code, the plugin uses its provided data directory instead. State is **per repository**; jobs are scoped to your Claude session.
 
-## Troubleshooting
+## 🩺 Troubleshooting
 
 | Symptom | Fix |
 | --- | --- |
 | `/cursor:*` commands don't appear | Finish `/plugin install cursor@cursor-plugin` and reload/restart Claude Code. |
-| Setup says cursor-agent is missing | Install it (step 1) and make sure it's on your `PATH` (`cursor-agent --version`). |
+| Setup says cursor-agent is missing | Install it (step 1) and ensure it's on your `PATH` (`cursor-agent --version`). |
 | Setup says not authenticated | Run `cursor-agent login`, or set `CURSOR_API_KEY`. |
-| "Workspace Trust Required" / hard fail | The plugin always passes `--trust`; if you see this, you're likely calling `cursor-agent` yourself without it. |
+| "Workspace Trust Required" / hard fail | The plugin always passes `--trust`; if you see this you're likely calling `cursor-agent` yourself without it. |
 | A review returns no JSON / parse error | Output is shown raw with the parse error. Re-run, or try `--model review` for a stronger model. |
 | A background job is stuck | `/cursor:status <id>` to inspect, `/cursor:cancel <id>` to stop it. |
-| Windows issues | Best-effort only; use WSL, and ensure `cursor-agent` is directly on `PATH`. |
+| Windows issues | Best-effort only; use WSL and ensure `cursor-agent` is directly on `PATH`. |
 
-## Security & safety notes
+## 🔒 Security & safety
 
-- **No shell interpolation.** `cursor-agent` is never spawned through a shell, so
-  prompt text can't be interpreted as shell commands (injection-safe).
-- **Read-only really is read-only.** Reviews and `--read-only` rescues use
-  `cursor-agent --mode ask`; Cursor reads and answers but cannot edit.
-- **Write tasks edit your files.** A default (write-capable) rescue can modify the
-  working tree — review the diff afterward, especially for background jobs.
-- **Cost.** Stronger models cost more than `composer-2.5`; token usage is surfaced
-  in `/cursor:result` and `/cursor:status`.
+- **No shell interpolation.** `cursor-agent` is never spawned through a shell, so prompt text can't be interpreted as shell commands (injection-safe).
+- **Read-only really is read-only.** Reviews and `--read-only` rescues use `cursor-agent --mode ask`; Cursor reads and answers but cannot edit.
+- **Write tasks edit your files.** A default (write-capable) rescue can modify the working tree — review the diff afterward, especially for background jobs.
+- **Cost.** Stronger models cost more than `composer-2.5`; token usage is surfaced in `/cursor:result` and `/cursor:status`.
 
-## Development
+See [SECURITY.md](./SECURITY.md) to report a vulnerability.
+
+## 🧪 Development
 
 ```bash
 npm test    # node --test — hermetic, uses a fake cursor-agent (no credits spent)
 ```
 
-Zero runtime dependencies — only Node.js built-ins. Contributions welcome; see
-[CONTRIBUTING.md](./CONTRIBUTING.md).
+Zero runtime dependencies — only Node.js built-ins. Contributions welcome; see [CONTRIBUTING.md](./CONTRIBUTING.md) and our [Code of Conduct](./CODE_OF_CONDUCT.md).
 
-## License
+## 📄 License
 
-[MIT](./LICENSE) © Armert Labs
+[MIT](./LICENSE) © [Armert Labs](https://github.com/Armert-Labs)
+
+---
+
+<div align="center"><sub>Built with care by <a href="https://github.com/Armert-Labs">Armert Labs</a> · <a href="./CONTRIBUTING.md">Contribute</a> · <a href="https://github.com/Armert-Labs/cursor-plugin/issues">Issues</a></sub></div>
