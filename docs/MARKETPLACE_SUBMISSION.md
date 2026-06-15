@@ -88,5 +88,6 @@ Notes for reviewers:
 - [x] CI green (syntax + JSON + hermetic tests) on Node 18/20/22
 - [x] No runtime dependencies; nothing downloaded at install/runtime
 - [x] Behavior (hooks, network, edits) disclosed in the plugin.json description
+- [x] Verified a clean install from the pinned `v0.1.1` tag (fresh clone: `setup` ready, hermetic tests green, example resolves)
 - [ ] Submit the packet above at https://clau.de/plugin-directory-submission (manual; requires your account)
 - [ ] If asked, confirm `category`/`name` and relicense to Apache-2.0

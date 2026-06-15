@@ -2,6 +2,9 @@
 
 Thanks for your interest in improving **cursor-plugin**.
 
+Participation is governed by our [Code of Conduct](./CODE_OF_CONDUCT.md). To report
+a security issue, follow [SECURITY.md](./SECURITY.md) (please don't open a public issue).
+
 ## Project layout
 
 - `plugins/cursor/` — the installable plugin (commands, agent, skills, hooks, scripts).
