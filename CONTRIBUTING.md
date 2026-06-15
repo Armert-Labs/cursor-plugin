@@ -41,6 +41,13 @@ npm test
 When changing parsing or job/state logic, add or update a test in `tests/` and run
 `node --test tests/*.test.mjs` before opening a PR.
 
+Validate the manifests the same way the marketplace review pipeline does:
+
+```bash
+claude plugin validate plugins/cursor --strict
+claude plugin validate . --strict        # marketplace manifest
+```
+
 ## Commit / PR
 
 - Keep changes focused; describe the user-visible behavior in the PR.

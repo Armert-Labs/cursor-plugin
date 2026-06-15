@@ -1,42 +1,75 @@
-# Submitting to the official Claude Code plugin directory
+# Submitting to the Claude Code plugin marketplace
 
-> **The official directory does NOT accept pull requests.**
-> [`anthropics/claude-plugins-official`](https://github.com/anthropics/claude-plugins-official)
-> runs a `close-external-prs.yml` workflow that auto-closes external PRs. Third-party
-> plugins are submitted through a **web form**, then reviewed by Anthropic.
+This is the verified process from the official docs
+([Submit your plugin](https://code.claude.com/docs/en/plugins#submit-your-plugin-to-the-community-marketplace)).
 
-**Submission form:** <https://clau.de/plugin-directory-submission>
+## Two marketplaces
 
-Until/unless it is accepted there, users install directly from this repo:
+- **`claude-plugins-official`** — curated by Anthropic at its discretion.
+  **No application process**, and the submission form does **not** add plugins here.
+- **`claude-community`** ([`anthropics/claude-plugins-community`](https://github.com/anthropics/claude-plugins-community)) —
+  the public community marketplace where third-party submissions land **after review**.
+  This is the target for a submission. Users then install with:
+  ```text
+  /plugin marketplace add anthropics/claude-plugins-community
+  /plugin install cursor@claude-community
+  ```
+
+Until/unless it's approved there, anyone can install directly from this repo:
 
 ```text
 /plugin marketplace add Armert-Labs/cursor-plugin
 /plugin install cursor@cursor-plugin
 ```
 
----
+## How to submit (requires sign-in — must be done by the author)
 
-## Submission packet (paste into the form)
+Submission is through an **in-app form** behind your Anthropic account, so it
+can't be automated on your behalf — pick the form that matches your account:
+
+- **Console (individual authors):** <https://platform.claude.com/plugins/submit>
+- **claude.ai (Team/Enterprise orgs):** <https://claude.ai/admin-settings/directory/submissions/plugins/new>
+  — requires a Team/Enterprise org with directory-management access (org Owners have it).
+
+After approval, the plugin is pinned to a commit SHA in the
+`claude-plugins-community` catalog; CI bumps the pin as you push new commits, and
+the public catalog syncs nightly (so there's a delay before it appears).
+
+## Pre-submission status (done)
+
+- [x] `claude plugin validate plugins/cursor --strict` → **passed**
+- [x] `claude plugin validate . --strict` (marketplace manifest) → **passed**
+- [x] Public repo, MIT license, thorough README + command reference
+- [x] Tagged release `v0.1.2` with a published GitHub Release; CI green on Node 18/20/22
+- [x] Clean install from the pinned tag verified (fresh clone: `setup` ready, tests green)
+- [x] No runtime dependencies; nothing downloaded at install/runtime
+- [x] Behavior (hooks, network, edits) disclosed in the plugin.json description
+
+> The review pipeline runs `claude plugin validate` plus automated safety
+> screening. The security/behavior answers below pre-empt that screening.
+
+## Submission packet (what the form asks for)
 
 | Field | Value |
 | --- | --- |
 | Plugin name | `cursor` |
 | Repository | `https://github.com/Armert-Labs/cursor-plugin` |
 | Plugin path in repo | `plugins/cursor` |
-| Pinned ref / commit | `v0.1.2` / `f802d518c4bdbcd52afe5da8bc2b8248d0c46b09` |
-| Category | `development` (valid per the directory's current category list) |
+| Latest release / commit | `v0.1.2` / `f802d518c4bdbcd52afe5da8bc2b8248d0c46b09` |
+| Category | `development` |
 | Author | Armert Labs |
 | Homepage | `https://github.com/Armert-Labs/cursor-plugin` |
 | License | MIT |
 
-**Description (matches the plugin.json, discloses behavior):**
+**Description (matches plugin.json, discloses behavior):**
 
 > Use Cursor's CLI (cursor-agent) from Claude Code to delegate coding tasks and
 > review code, choosing the model per call. Shells out to your locally installed,
 > authenticated cursor-agent (no data is sent to the plugin author). Registers
 > session-lifecycle hooks and an optional, off-by-default stop-time review gate.
 
-**Equivalent marketplace entry** (the directory uses a `git-subdir` source):
+Equivalent catalog entry (the community catalog uses a `git-subdir` source and
+auto-bumps the `sha`):
 
 ```json
 {
@@ -55,39 +88,16 @@ Until/unless it is accepted there, users install directly from this repo:
 }
 ```
 
----
+## Security & behavior disclosure (for the safety screening)
 
-## Security & behavior disclosure
-
-The directory runs an automated safety/behavior review (see its
-`.github/policy/schema.json`). Pre-answers for this plugin:
-
-| Check | Answer |
+| Question | Answer |
 | --- | --- |
-| `may_make_external_network_calls` | **Yes** — only by invoking your locally installed, **authenticated `cursor-agent`**, which talks to **your own Cursor account**. The plugin makes no calls to any Armert Labs / author endpoint. |
-| `may_download_additional_software` | **No.** Zero runtime dependencies; nothing is fetched or installed at runtime. `cursor-agent` must already be installed by the user. |
-| `has_undisclosed_telemetry` | **No.** No analytics, no author-side egress. The only network egress is the user's own `cursor-agent`, which is the plugin's stated purpose and is disclosed in the description and README. |
-| Registered hooks | `SessionStart` and `SessionEnd` (lifecycle: export/clean up a session id and local job records — no network), and `Stop` (the **off-by-default** review gate; when a user enables it via `/cursor:setup --enable-review-gate`, it runs a read-only `cursor-agent` review of the previous turn). |
-| `has_broad_scope_hooks` | **No.** The plugin registers **no** `UserPromptSubmit`, `PreToolUse`, or `PostToolUse` hooks. The `Stop` gate is opt-in and reads only the previous turn + repo state to review it. |
-| `description_matches_behavior` | **Yes.** The plugin.json description explicitly discloses the hooks, the optional stop-time gate, and that it shells out to `cursor-agent`. |
+| Makes external network calls? | **Yes** — only by invoking your locally installed, **authenticated `cursor-agent`**, which talks to **your own Cursor account**. No calls to any author endpoint. |
+| Downloads additional software? | **No.** Zero runtime dependencies; `cursor-agent` must already be installed by the user. |
+| Undisclosed telemetry? | **No.** No analytics, no author-side egress; the only egress is the user's own `cursor-agent`, which is the plugin's stated purpose. |
+| Registered hooks | `SessionStart` / `SessionEnd` (lifecycle: session id + local job cleanup, no network) and `Stop` (the **off-by-default** review gate; when enabled it runs a read-only `cursor-agent` review of the previous turn). |
+| Broad-scope hooks? | **No** `UserPromptSubmit` / `PreToolUse` / `PostToolUse` hooks. The `Stop` gate is opt-in and only reads the previous turn + repo state. |
+| Description matches behavior? | **Yes** — the plugin.json description discloses the hooks, the optional gate, and the `cursor-agent` shell-out. |
 
-Notes for reviewers:
-- Write-capable `/cursor:rescue` edits files in the user's working tree by design
-  (this is the plugin's purpose, stated in the README); read-only operations use
-  `cursor-agent --mode ask` and never edit.
-- The directory's internal `validate-licenses` step references Apache-2.0 for
-  plugins vendored *inside* its repo; this plugin is external (`git-subdir`) and
-  ships its own permissive **MIT** LICENSE. Relicensing to Apache-2.0 is trivial
-  if the reviewers require it.
-
-## Pre-submission checklist
-
-- [x] Public repo, OSI license (MIT), thorough README with install + command reference
-- [x] Valid `plugins/cursor/.claude-plugin/plugin.json`; all paths use `${CLAUDE_PLUGIN_ROOT}`
-- [x] Tagged release `v0.1.2` with a published GitHub Release
-- [x] CI green (syntax + JSON + hermetic tests) on Node 18/20/22
-- [x] No runtime dependencies; nothing downloaded at install/runtime
-- [x] Behavior (hooks, network, edits) disclosed in the plugin.json description
-- [x] Verified a clean install from the pinned `v0.1.2` tag (fresh clone: `setup` ready, hermetic tests green, example resolves)
-- [ ] Submit the packet above at https://clau.de/plugin-directory-submission (manual; requires your account)
-- [ ] If asked, confirm `category`/`name` and relicense to Apache-2.0
+Note: write-capable `/cursor:rescue` edits files in the working tree by design
+(stated in the README); read-only operations use `cursor-agent --mode ask`.
