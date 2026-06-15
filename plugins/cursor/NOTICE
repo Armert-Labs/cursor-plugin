@@ -1,0 +1,10 @@
+cursor-plugin — by Armert Labs (https://github.com/Armert-Labs)
+
+This plugin wraps the Cursor CLI (`cursor-agent`) for use inside Claude Code.
+Its command surface and runtime contract are inspired by OpenAI's codex-plugin-cc
+(https://github.com/openai/codex-plugin-cc, Apache-2.0). No OpenAI code is
+redistributed here; the implementation is original and licensed under MIT.
+
+"Cursor" and "cursor-agent" are products of Anysphere, Inc. "Claude" and
+"Claude Code" are products of Anthropic. This is an unofficial, community
+plugin and is not affiliated with or endorsed by Anysphere or Anthropic.

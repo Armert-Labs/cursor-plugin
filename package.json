@@ -1,0 +1,31 @@
+{
+  "name": "cursor-plugin",
+  "version": "0.1.0",
+  "description": "Cursor CLI plugin for Claude Code: delegation, rescue, and code review via cursor-agent.",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "author": "Armert Labs",
+  "homepage": "https://github.com/Armert-Labs/cursor-plugin#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Armert-Labs/cursor-plugin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Armert-Labs/cursor-plugin/issues"
+  },
+  "keywords": [
+    "claude-code",
+    "claude-code-plugin",
+    "cursor",
+    "cursor-agent",
+    "code-review",
+    "ai-agents"
+  ],
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

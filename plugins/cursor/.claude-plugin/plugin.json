@@ -1,0 +1,12 @@
+{
+  "name": "cursor",
+  "version": "0.1.0",
+  "description": "Use Cursor (cursor-agent) from Claude Code to review code or delegate tasks.",
+  "author": {
+    "name": "Armert Labs",
+    "url": "https://github.com/Armert-Labs"
+  },
+  "homepage": "https://github.com/Armert-Labs/cursor-plugin",
+  "license": "MIT",
+  "keywords": ["cursor", "cursor-agent", "code-review", "delegation"]
+}
