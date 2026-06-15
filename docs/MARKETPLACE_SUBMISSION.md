@@ -1,9 +1,39 @@
-# Submitting to the Claude Code plugin marketplace
+# Distributing cursor-plugin
 
-This is the verified process from the official docs
+## Primary: this repo is a self-hosted marketplace (recommended)
+
+This repository **is** a Claude Code marketplace — it has a
+`.claude-plugin/marketplace.json` at its root. That is a first-class distribution
+method: it works today, with **no approval and no fee**.
+
+```text
+/plugin marketplace add Armert-Labs/cursor-plugin
+/plugin install cursor@cursor-plugin
+```
+
+You keep control of versions: push a new tag/commit and users pick it up with
+`/plugin marketplace update cursor-plugin`. This is the recommended path and needs
+nothing from Anthropic.
+
+> **Marketplace naming:** names like `claude-plugins-official`, `anthropic-plugins`,
+> and `agent-skills` are reserved for Anthropic, and look-alikes such as
+> `official-claude-plugins` are blocked too. This marketplace uses the neutral name
+> **`cursor-plugin`**, which is fine.
+
+## Optional: Anthropic's community directory
+
+For extra discoverability you can *also* submit to Anthropic's public **community**
+marketplace (`@claude-community`). This is optional — the self-hosted route above
+already works. The process below is from the official docs
 ([Submit your plugin](https://code.claude.com/docs/en/plugins#submit-your-plugin-to-the-community-marketplace)).
 
-## Two marketplaces
+> **Heads-up on "fees":** the Console submission form lives on `platform.claude.com`
+> (the developer/API Console), which may first prompt you to set up an organization
+> or a payment method **for the Console account itself**. There is **no documented
+> fee for the directory submission** — don't pay a "submission fee"; Console
+> account/billing setup is a separate thing from listing a plugin.
+
+### Two marketplaces
 
 - **`claude-plugins-official`** — curated by Anthropic at its discretion.
   **No application process**, and the submission form does **not** add plugins here.

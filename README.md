@@ -166,6 +166,12 @@ export CURSOR_API_KEY="your_api_key"   # from the Cursor dashboard
 
 ### 3. Add the marketplace & install the plugin
 
+This plugin is distributed through its **own self-hosted marketplace** — this very
+GitHub repo. That's a first-class Claude Code distribution method: it works
+immediately, needs **no Anthropic directory approval**, and you keep control of
+versions. (Claude Code can add any git repo whose root contains a
+`.claude-plugin/marketplace.json`.)
+
 Inside Claude Code, run:
 
 ```text
@@ -173,10 +179,15 @@ Inside Claude Code, run:
 /plugin install cursor@cursor-plugin
 ```
 
-- `marketplace add` registers this GitHub repo as a plugin source.
-- `install cursor@cursor-plugin` installs the `cursor` plugin from the
-  `cursor-plugin` marketplace. After installing you may be prompted to reload;
-  do so (or restart Claude Code) to load the new slash commands and hooks.
+- `/plugin marketplace add Armert-Labs/cursor-plugin` registers this repo as a
+  plugin source (Claude Code reads `.claude-plugin/marketplace.json` at the root).
+- `/plugin install cursor@cursor-plugin` installs the `cursor` plugin from the
+  `cursor-plugin` marketplace.
+- **Reload when prompted** (or restart Claude Code) so the new slash commands,
+  the `cursor:cursor-rescue` agent, and the hooks load.
+
+**Verify it loaded:** open `/plugin` and you'll see **cursor** under *Installed*,
+or run `/help` and look for the `/cursor:*` commands.
 
 **Local development install** (from a checkout instead of GitHub):
 
