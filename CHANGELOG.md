@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.1.2] - 2026-06-16
+
+### Fixed
+- `readStoredJob` / `readStoredJobOrNull` now return `null` for a corrupted or
+  half-written job file instead of throwing on `JSON.parse`. `/cursor:status`,
+  `/cursor:result`, `/cursor:cancel`, and the background worker now degrade
+  gracefully on bad on-disk state (found by an automated repo audit).
+
 ## [0.1.1] - 2026-06-15
 
 ### Changed

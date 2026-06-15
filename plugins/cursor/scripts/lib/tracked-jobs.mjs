@@ -127,7 +127,12 @@ function readStoredJobOrNull(workspaceRoot, jobId) {
   if (!fs.existsSync(jobFile)) {
     return null;
   }
-  return readJobFile(jobFile);
+  try {
+    return readJobFile(jobFile);
+  } catch {
+    // Honor the "OrNull" contract for corrupted files too, not just missing ones.
+    return null;
+  }
 }
 
 export async function runTrackedJob(job, runner, options = {}) {

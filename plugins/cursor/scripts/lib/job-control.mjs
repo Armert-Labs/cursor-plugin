@@ -143,7 +143,13 @@ export function readStoredJob(workspaceRoot, jobId) {
   if (!fs.existsSync(jobFile)) {
     return null;
   }
-  return readJobFile(jobFile);
+  try {
+    return readJobFile(jobFile);
+  } catch {
+    // Treat a corrupted/half-written job file like a missing one so callers
+    // that null-check don't crash on `JSON.parse`.
+    return null;
+  }
 }
 
 function matchJobReference(jobs, reference, predicate = () => true) {
