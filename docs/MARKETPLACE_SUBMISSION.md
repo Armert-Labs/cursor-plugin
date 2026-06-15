@@ -1,63 +1,92 @@
-# Submitting to the official Claude Code plugin marketplace
+# Submitting to the official Claude Code plugin directory
 
-This guide prepares the submission of **cursor-plugin** to Anthropic's official
-marketplace, [`anthropics/claude-plugins-official`](https://github.com/anthropics/claude-plugins-official).
-Until then, users install directly from this repo:
+> **The official directory does NOT accept pull requests.**
+> [`anthropics/claude-plugins-official`](https://github.com/anthropics/claude-plugins-official)
+> runs a `close-external-prs.yml` workflow that auto-closes external PRs. Third-party
+> plugins are submitted through a **web form**, then reviewed by Anthropic.
+
+**Submission form:** <https://clau.de/plugin-directory-submission>
+
+Until/unless it is accepted there, users install directly from this repo:
 
 ```text
 /plugin marketplace add Armert-Labs/cursor-plugin
 /plugin install cursor@cursor-plugin
 ```
 
-## How submission works
+---
 
-The official marketplace is a single `.claude-plugin/marketplace.json` listing
-plugins. Each entry references an external repo with a `git-subdir` source (the
-plugin's `plugins/<name>` folder is pulled from a pinned tag/commit). To get
-listed you open a PR to that repo adding one entry.
+## Submission packet (paste into the form)
 
-1. Fork `anthropics/claude-plugins-official`.
-2. Add the entry below to the `plugins` array in `.claude-plugin/marketplace.json`
-   (keep the array sorted/conventional to match the repo).
-3. Open a PR following their CONTRIBUTING guidelines; maintainers review name,
-   category, description, and that the plugin installs cleanly.
+| Field | Value |
+| --- | --- |
+| Plugin name | `cursor` |
+| Repository | `https://github.com/Armert-Labs/cursor-plugin` |
+| Plugin path in repo | `plugins/cursor` |
+| Pinned ref / commit | `v0.1.1` / `d6359fc0247cdec22908d8b600a42ad0fb1143ae` |
+| Category | `development` (valid per the directory's current category list) |
+| Author | Armert Labs |
+| Homepage | `https://github.com/Armert-Labs/cursor-plugin` |
+| License | MIT |
 
-## Proposed entry
+**Description (matches the plugin.json, discloses behavior):**
+
+> Use Cursor's CLI (cursor-agent) from Claude Code to delegate coding tasks and
+> review code, choosing the model per call. Shells out to your locally installed,
+> authenticated cursor-agent (no data is sent to the plugin author). Registers
+> session-lifecycle hooks and an optional, off-by-default stop-time review gate.
+
+**Equivalent marketplace entry** (the directory uses a `git-subdir` source):
 
 ```json
 {
   "name": "cursor",
-  "description": "Use Cursor's agentic CLI (cursor-agent) from inside Claude Code: delegate coding tasks, rescue stuck work, and run read-only code reviews — choosing the model per call. Includes background jobs, resumable chats, an optional stop-time review gate, and multi-model team orchestration.",
-  "author": {
-    "name": "Armert Labs"
-  },
+  "description": "Use Cursor's CLI (cursor-agent) from Claude Code to delegate coding tasks and review code, choosing the model per call. Shells out to your locally installed, authenticated cursor-agent (no data is sent to the plugin author). Registers session-lifecycle hooks and an optional, off-by-default stop-time review gate.",
+  "author": { "name": "Armert Labs" },
   "category": "development",
   "source": {
     "source": "git-subdir",
     "url": "https://github.com/Armert-Labs/cursor-plugin.git",
     "path": "plugins/cursor",
-    "ref": "v0.1.0",
-    "sha": "899c2fe35f6fd6e3d924f5b0daf425621a2e5e8f"
+    "ref": "v0.1.1",
+    "sha": "d6359fc0247cdec22908d8b600a42ad0fb1143ae"
   },
   "homepage": "https://github.com/Armert-Labs/cursor-plugin"
 }
 ```
 
-Notes:
-- `ref`/`sha` pin the listing to the **v0.1.0** tag. Bump both on each release
-  (`git rev-parse 'vX.Y.Z^{commit}'` gives the sha).
-- `category` is a guess — match it to Anthropic's accepted category list during review.
-- The entry `name` (`cursor`) is the install id (`cursor@claude-plugins-official`).
-  If the maintainers prefer a more specific/namespaced name (e.g. `cursor-agent`),
-  that's a one-line change here and in our `plugin.json`.
+---
+
+## Security & behavior disclosure
+
+The directory runs an automated safety/behavior review (see its
+`.github/policy/schema.json`). Pre-answers for this plugin:
+
+| Check | Answer |
+| --- | --- |
+| `may_make_external_network_calls` | **Yes** — only by invoking your locally installed, **authenticated `cursor-agent`**, which talks to **your own Cursor account**. The plugin makes no calls to any Armert Labs / author endpoint. |
+| `may_download_additional_software` | **No.** Zero runtime dependencies; nothing is fetched or installed at runtime. `cursor-agent` must already be installed by the user. |
+| `has_undisclosed_telemetry` | **No.** No analytics, no author-side egress. The only network egress is the user's own `cursor-agent`, which is the plugin's stated purpose and is disclosed in the description and README. |
+| Registered hooks | `SessionStart` and `SessionEnd` (lifecycle: export/clean up a session id and local job records — no network), and `Stop` (the **off-by-default** review gate; when a user enables it via `/cursor:setup --enable-review-gate`, it runs a read-only `cursor-agent` review of the previous turn). |
+| `has_broad_scope_hooks` | **No.** The plugin registers **no** `UserPromptSubmit`, `PreToolUse`, or `PostToolUse` hooks. The `Stop` gate is opt-in and reads only the previous turn + repo state to review it. |
+| `description_matches_behavior` | **Yes.** The plugin.json description explicitly discloses the hooks, the optional stop-time gate, and that it shells out to `cursor-agent`. |
+
+Notes for reviewers:
+- Write-capable `/cursor:rescue` edits files in the user's working tree by design
+  (this is the plugin's purpose, stated in the README); read-only operations use
+  `cursor-agent --mode ask` and never edit.
+- The directory's internal `validate-licenses` step references Apache-2.0 for
+  plugins vendored *inside* its repo; this plugin is external (`git-subdir`) and
+  ships its own permissive **MIT** LICENSE. Relicensing to Apache-2.0 is trivial
+  if the reviewers require it.
 
 ## Pre-submission checklist
 
-- [x] Public repo with an OSI license (MIT) and a clear README
-- [x] Valid `.claude-plugin/marketplace.json` and `plugins/cursor/.claude-plugin/plugin.json`
-- [x] Commands, agent, skills, hooks all use `${CLAUDE_PLUGIN_ROOT}` (no absolute paths)
-- [x] Tagged release (`v0.1.0`) + GitHub Release notes
+- [x] Public repo, OSI license (MIT), thorough README with install + command reference
+- [x] Valid `plugins/cursor/.claude-plugin/plugin.json`; all paths use `${CLAUDE_PLUGIN_ROOT}`
+- [x] Tagged release `v0.1.1` with a published GitHub Release
 - [x] CI green (syntax + JSON + hermetic tests) on Node 18/20/22
-- [x] No runtime dependencies; nothing fetched at install time
-- [ ] Re-test a clean install from the pinned tag before opening the PR
-- [ ] Confirm the chosen `category` and `name` against the marketplace's current rules
+- [x] No runtime dependencies; nothing downloaded at install/runtime
+- [x] Behavior (hooks, network, edits) disclosed in the plugin.json description
+- [ ] Submit the packet above at https://clau.de/plugin-directory-submission (manual; requires your account)
+- [ ] If asked, confirm `category`/`name` and relicense to Apache-2.0
