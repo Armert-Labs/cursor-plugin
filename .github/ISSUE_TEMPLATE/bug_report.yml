@@ -1,0 +1,56 @@
+name: Bug report
+description: Something in the plugin doesn't work as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report! Please run `/cursor:setup` first — many issues are
+        a missing or unauthenticated `cursor-agent`.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+      placeholder: |
+        1. Ran `/cursor:review --model review`
+        2. Expected a structured review
+        3. Got ...
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: Output of `/cursor:setup`
+      description: Paste the full report (redact your email if you like).
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command that failed
+      placeholder: "/cursor:rescue --background --model max ..."
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output / error
+      description: Any error text, `/cursor:status <id>` detail, or job log lines.
+      render: text
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      placeholder: macOS 15 / Ubuntu 24.04 / Windows 11 (WSL)
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: "`node --version`, `cursor-agent --version`, plugin version"
+      placeholder: "node v20.x, cursor-agent 2026.x, cursor-plugin 0.1.0"
+    validations:
+      required: true

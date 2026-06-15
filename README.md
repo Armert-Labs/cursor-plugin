@@ -1,5 +1,6 @@
 # cursor-plugin
 
+[![CI](https://github.com/Armert-Labs/cursor-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/Armert-Labs/cursor-plugin/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 ![Node ≥ 18.18](https://img.shields.io/badge/node-%E2%89%A5%2018.18-brightgreen)
 ![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-8A2BE2)

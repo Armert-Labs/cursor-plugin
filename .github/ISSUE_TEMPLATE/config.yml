@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Cursor CLI documentation
+    url: https://cursor.com/docs/cli
+    about: Questions about cursor-agent itself (install, auth, models) belong here.
+  - name: Claude Code plugins
+    url: https://docs.claude.com/en/docs/claude-code
+    about: General questions about Claude Code or the plugin system.

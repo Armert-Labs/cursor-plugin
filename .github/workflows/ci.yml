@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: test (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18, 20, 22]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Syntax check all scripts
+        run: |
+          for f in plugins/cursor/scripts/*.mjs plugins/cursor/scripts/lib/*.mjs; do
+            node --check "$f"
+          done
+
+      - name: Validate JSON manifests
+        run: |
+          for f in .claude-plugin/marketplace.json \
+                   plugins/cursor/.claude-plugin/plugin.json \
+                   plugins/cursor/hooks/hooks.json \
+                   plugins/cursor/schemas/review-output.schema.json \
+                   package.json; do
+            node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))"
+          done
+
+      - name: Run tests (hermetic — no cursor-agent / credits)
+        run: node --test tests/*.test.mjs
