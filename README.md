@@ -1,5 +1,12 @@
 # cursor-plugin
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+![Node ≥ 18.18](https://img.shields.io/badge/node-%E2%89%A5%2018.18-brightgreen)
+![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-8A2BE2)
+![Cursor cursor-agent](https://img.shields.io/badge/Cursor-cursor--agent-2563EB)
+![Zero dependencies](https://img.shields.io/badge/deps-0-success)
+![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)
+
 Use [Cursor](https://cursor.com)'s agentic CLI (`cursor-agent`) from inside **Claude Code** — delegate coding tasks, rescue stuck work, and run code reviews without leaving your Claude session, on whichever model you choose **per call**.
 
 It mirrors the command surface of OpenAI's [`codex-plugin-cc`](https://github.com/openai/codex-plugin-cc) but targets Cursor. Because `cursor-agent` exposes a simple headless interface (`-p --output-format json`), there is no app-server or broker — the plugin just shells out to `cursor-agent` and parses its output.
@@ -8,8 +15,65 @@ It mirrors the command surface of OpenAI's [`codex-plugin-cc`](https://github.co
 
 ---
 
+## Demo
+
+A real session — type the `/cursor:` commands in Claude Code and Cursor's output
+comes back inline (here, reviewing an in-memory cache that just grew a `ttl` option):
+
+```console
+> /cursor:setup
+# Cursor Setup
+Status: ready
+Checks:
+- node: v24.12.0
+- cursor-agent: 2026.06.15-...
+- auth: logged in as you@example.com
+- session runtime: direct
+- review gate: disabled
+
+> /cursor:rescue --read-only --model max  what does src/cache.js do and what's the risk?
+src/cache.js adds a process-local in-memory Map cache with get() and set() helpers,
+where set() schedules deletion after ttlMs. The main risk is unbounded,
+non-tenant-aware, per-process caching that can leak or mix sensitive data across
+tenants and break consistency across horizontally scaled instances.
+
+> /cursor:review
+# Cursor Review
+Target: working tree diff
+Verdict: needs-attention
+
+TTL support via bare setTimeout introduces a stale-timer eviction race on key
+refresh and breaks prior two-argument set() semantics by scheduling immediate
+deletion when ttlMs is omitted or invalid.
+
+Findings:
+- [high] Stale timers delete refreshed cache entries (src/cache.js:3-5)
+  Each set() call schedules an independent setTimeout that unconditionally runs
+  store.delete(key). If the same key is written again before an earlier timer
+  fires, the obsolete timer still deletes the newer value before its TTL expires.
+  Recommendation: track a per-key timer handle or generation token; clear the
+  previous timer on set, and delete only if the token still matches.
+
+> /cursor:status
+# Cursor Status
+Session runtime: direct
+Review gate: disabled
+
+Latest finished:
+- review-mqfficjs | completed | review | Cursor Review
+  Phase: done   Duration: 1m 5s
+  Cursor chat ID: b9de94c9-f185-4044-9f28-242570bc9d43
+  Resume in Cursor: cursor-agent --resume b9de94c9-f185-4044-9f28-242570bc9d43
+```
+
+> Prefer an animated GIF? A [VHS](https://github.com/charmbracelet/vhs) tape is in
+> [`assets/demo.tape`](./assets/demo.tape) — run `vhs assets/demo.tape` to record one.
+
+---
+
 ## Table of contents
 
+- [Demo](#demo)
 - [Why this plugin](#why-this-plugin)
 - [Requirements](#requirements)
 - [Installation (step by step)](#installation-step-by-step)
