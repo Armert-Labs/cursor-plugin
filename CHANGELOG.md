@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## [0.1.1] - 2026-06-15
+
+### Changed
+- Expanded the plugin description to explicitly disclose the session-lifecycle
+  hooks and the optional, off-by-default stop-time review gate, and to clarify
+  that the plugin only shells out to your own authenticated `cursor-agent` (no
+  data goes to the plugin author). Improves clarity and marketplace-review readiness.
+
+### Added
+- Release automation: a GitHub Actions workflow publishes a GitHub Release from
+  the matching `CHANGELOG.md` section whenever a `vX.Y.Z` tag is pushed.
+
 ## [0.1.0] - 2026-06-15
 
 Initial release.

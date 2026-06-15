@@ -1,6 +1,6 @@
 {
   "name": "cursor-plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Cursor CLI plugin for Claude Code: delegation, rescue, and code review via cursor-agent.",
   "type": "module",
   "private": true,

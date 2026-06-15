@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract release notes from CHANGELOG
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v ver="$version" '
+            $0 ~ ("^## \\[" ver "\\]") { flag = 1; next }
+            /^## \[/ { flag = 0 }
+            flag { print }
+          ' CHANGELOG.md > RELEASE_NOTES.md
+          if [ ! -s RELEASE_NOTES.md ]; then
+            printf "Release %s\n" "$GITHUB_REF_NAME" > RELEASE_NOTES.md
+          fi
+          echo "----- notes -----"; cat RELEASE_NOTES.md
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "cursor-plugin $GITHUB_REF_NAME" \
+            --notes-file RELEASE_NOTES.md \
+            --verify-tag \
+            --latest
