@@ -23,7 +23,7 @@ Until/unless it is accepted there, users install directly from this repo:
 | Plugin name | `cursor` |
 | Repository | `https://github.com/Armert-Labs/cursor-plugin` |
 | Plugin path in repo | `plugins/cursor` |
-| Pinned ref / commit | `v0.1.1` / `d6359fc0247cdec22908d8b600a42ad0fb1143ae` |
+| Pinned ref / commit | `v0.1.2` / `f802d518c4bdbcd52afe5da8bc2b8248d0c46b09` |
 | Category | `development` (valid per the directory's current category list) |
 | Author | Armert Labs |
 | Homepage | `https://github.com/Armert-Labs/cursor-plugin` |
@@ -48,8 +48,8 @@ Until/unless it is accepted there, users install directly from this repo:
     "source": "git-subdir",
     "url": "https://github.com/Armert-Labs/cursor-plugin.git",
     "path": "plugins/cursor",
-    "ref": "v0.1.1",
-    "sha": "d6359fc0247cdec22908d8b600a42ad0fb1143ae"
+    "ref": "v0.1.2",
+    "sha": "f802d518c4bdbcd52afe5da8bc2b8248d0c46b09"
   },
   "homepage": "https://github.com/Armert-Labs/cursor-plugin"
 }
@@ -84,10 +84,10 @@ Notes for reviewers:
 
 - [x] Public repo, OSI license (MIT), thorough README with install + command reference
 - [x] Valid `plugins/cursor/.claude-plugin/plugin.json`; all paths use `${CLAUDE_PLUGIN_ROOT}`
-- [x] Tagged release `v0.1.1` with a published GitHub Release
+- [x] Tagged release `v0.1.2` with a published GitHub Release
 - [x] CI green (syntax + JSON + hermetic tests) on Node 18/20/22
 - [x] No runtime dependencies; nothing downloaded at install/runtime
 - [x] Behavior (hooks, network, edits) disclosed in the plugin.json description
-- [x] Verified a clean install from the pinned `v0.1.1` tag (fresh clone: `setup` ready, hermetic tests green, example resolves)
+- [x] Verified a clean install from the pinned `v0.1.2` tag (fresh clone: `setup` ready, hermetic tests green, example resolves)
 - [ ] Submit the packet above at https://clau.de/plugin-directory-submission (manual; requires your account)
 - [ ] If asked, confirm `category`/`name` and relicense to Apache-2.0
