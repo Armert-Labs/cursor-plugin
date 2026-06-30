@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased]
+
+### Fixed
+- `binaryAvailable` no longer returns a crashing binary's full stderr as
+  `detail` — a crashing CLI can emit tens of KB (e.g. its own minified source),
+  which previously flooded `/cursor:setup` output. `detail` is now the first
+  meaningful line, capped at 500 chars. Per-stream `.trim()` selection runs
+  before truncating, so a whitespace-only stream still falls through to the other.
+
 ## [0.1.2] - 2026-06-16
 
 ### Fixed
