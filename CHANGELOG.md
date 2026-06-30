@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased]
+
+### Added
+- `CURSOR_AGENT_BIN` env var to choose which `cursor-agent` binary the plugin
+  invokes — an absolute path or a bare command name (resolved on `PATH`).
+  Relative paths with a separator are rejected (they would resolve against the
+  workspace cwd) with a warning, falling back to auto-detection.
+- Automatic binary fallback: when `cursor-agent` isn't runnable, the plugin tries
+  Cursor's newer `agent` name (accepted only if its `--version` is a Cursor
+  calver) before failing, so a broken or shadowed install on `PATH` self-heals.
+
+### Changed
+- When `cursor-agent` can't be run and `CURSOR_AGENT_BIN` is set, the error names
+  the override value instead of the generic install hint.
+
 ## [0.1.2] - 2026-06-16
 
 ### Fixed
