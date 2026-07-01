@@ -1,6 +1,6 @@
 {
   "name": "cursor",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Use Cursor's CLI (cursor-agent) from Claude Code to delegate coding tasks and review code, choosing the model per call. Shells out to your locally installed, authenticated cursor-agent (no data is sent to the plugin author). Registers session-lifecycle hooks and an optional, off-by-default stop-time review gate.",
   "author": {
     "name": "Armert Labs",
