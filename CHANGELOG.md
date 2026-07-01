@@ -23,6 +23,11 @@ All notable changes to this project are documented here.
   which previously flooded `/cursor:setup` output. `detail` is now the first
   meaningful line, capped at 500 chars. Per-stream `.trim()` selection runs
   before truncating, so a whitespace-only stream still falls through to the other.
+- `CURSOR_AGENT_BIN` resolution hardening (from a post-merge review): a rejected
+  relative override no longer gets blamed in the "not runnable" error (it now
+  shows the generic install hint, matching the earlier warning), and Windows
+  drive-relative values (e.g. `C:agent`) are now rejected too, not just
+  separator-bearing relatives. Rejection logic is shared via `isUsableCursorOverride`.
 
 ## [0.1.2] - 2026-06-16
 

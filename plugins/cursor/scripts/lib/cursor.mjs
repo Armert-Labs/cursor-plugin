@@ -18,18 +18,34 @@ const CURSOR_BIN_CANDIDATES = [
   { bin: "agent", verify: (detail) => /^v?\d{4}\.\d{2}\.\d{2}/.test(detail) }
 ];
 
+// A CURSOR_AGENT_BIN value is safe to invoke only as a bare command name
+// (resolved on PATH) or an absolute path. Anything that is anchored — has a path
+// separator, or a filesystem root — yet is NOT absolute is rejected: spawn()
+// would resolve it against the untrusted workspace cwd. This covers POSIX
+// relatives ("bin/agent", "./agent") and Windows drive-relative values
+// ("C:agent", which has root "C:" but is not absolute). pathImpl is injectable
+// so the Windows semantics stay testable on any host.
+export function isUsableCursorOverride(override, pathImpl = path) {
+  if (!override) {
+    return false;
+  }
+  const anchored =
+    override.includes("/") || override.includes(pathImpl.sep) || Boolean(pathImpl.parse(override).root);
+  return !anchored || pathImpl.isAbsolute(override);
+}
+
 // Decide which cursor-agent binary to invoke. CURSOR_AGENT_BIN overrides
-// everything (bare name → PATH, absolute path → as-is); a relative path with a
-// separator is rejected — spawn() would resolve it against the untrusted
-// workspace cwd — and we fall back to probing. Otherwise probe the candidates
-// and use the first that runs, so a broken/duplicate install self-heals.
-// Pure + injectable (probe/env/warn) for hermetic tests. Returns { bin, availability }.
+// everything (bare name → PATH, absolute path → as-is); a relative or
+// drive-relative path is rejected — spawn() would resolve it against the
+// untrusted workspace cwd — and we fall back to probing. Otherwise probe the
+// candidates and use the first that runs, so a broken/duplicate install
+// self-heals. Pure + injectable (probe/env/warn) for hermetic tests.
+// Returns { bin, availability }.
 export function pickCursorBin({ env = process.env, probe, warn = (m) => process.emitWarning(m) } = {}) {
   const runProbe = probe ?? ((bin) => binaryAvailable(bin, ["--version"]));
   const override = env.CURSOR_AGENT_BIN?.trim();
   if (override) {
-    const hasSeparator = override.includes("/") || override.includes(path.sep);
-    if (!hasSeparator || path.isAbsolute(override)) {
+    if (isUsableCursorOverride(override)) {
       return { bin: override, availability: runProbe(override) };
     }
     warn(
@@ -102,8 +118,11 @@ export function ensureCursorAvailable(cwd) {
   const availability = getCursorAvailability(cwd);
   if (!availability.available) {
     const override = process.env.CURSOR_AGENT_BIN?.trim();
+    // Only blame the override when it was actually used. A rejected relative
+    // override never reached the probe, so naming it (with cursor-agent's
+    // PATH-probe detail) would mislead and contradict the earlier warning.
     throw new Error(
-      override
+      isUsableCursorOverride(override)
         ? `Cursor CLI not runnable via CURSOR_AGENT_BIN="${override}" (${availability.detail}). ` +
             "Fix the override or unset it to fall back to PATH. " +
             SETUP_HINT

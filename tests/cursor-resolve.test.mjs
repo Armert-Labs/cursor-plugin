@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import { test } from "node:test";
 
-import { pickCursorBin } from "../plugins/cursor/scripts/lib/cursor.mjs";
+import { isUsableCursorOverride, pickCursorBin } from "../plugins/cursor/scripts/lib/cursor.mjs";
 
 // Build a fake prober from a { binName: {available, detail} } map. Keeps these
 // tests hermetic — no real cursor-agent, no spawning, no credits.
@@ -66,4 +67,31 @@ test("pickCursorBin: nothing available → canonical name, not available", () =>
   const r = pickCursorBin({ env: {}, probe: fakeProbe({}) });
   assert.equal(r.bin, "cursor-agent");
   assert.equal(r.availability.available, false);
+});
+
+test("isUsableCursorOverride: bare names and absolute paths are usable, relatives are not", () => {
+  // Bare command name → resolved on PATH.
+  assert.equal(isUsableCursorOverride("agent", path.posix), true);
+  // Absolute path → used as-is.
+  assert.equal(isUsableCursorOverride("/opt/cursor/agent", path.posix), true);
+  // Relative paths with a separator → rejected (resolve against workspace cwd).
+  assert.equal(isUsableCursorOverride("bin/agent", path.posix), false);
+  assert.equal(isUsableCursorOverride("./agent", path.posix), false);
+  assert.equal(isUsableCursorOverride("../agent", path.posix), false);
+  // Empty / unset → not usable.
+  assert.equal(isUsableCursorOverride(""), false);
+  assert.equal(isUsableCursorOverride(undefined), false);
+});
+
+test("isUsableCursorOverride: Windows drive-relative values are rejected", () => {
+  // "C:agent" has a root ("C:") but is NOT absolute — spawn would resolve it
+  // against the drive's current dir (workspace cwd), so it must be rejected.
+  assert.equal(isUsableCursorOverride("C:agent", path.win32), false);
+  // A real absolute Windows path is fine.
+  assert.equal(isUsableCursorOverride("C:\\cursor\\agent.exe", path.win32), true);
+  assert.equal(isUsableCursorOverride("C:/cursor/agent.exe", path.win32), true);
+  // Backslash-relative → rejected.
+  assert.equal(isUsableCursorOverride("bin\\agent", path.win32), false);
+  // Bare name → usable on Windows too.
+  assert.equal(isUsableCursorOverride("agent", path.win32), true);
 });

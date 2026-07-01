@@ -24,6 +24,18 @@ test("binaryAvailable: caps a crashing binary's huge stderr to <=500 chars", () 
   assert.ok(r.detail.length <= 500, `detail too long: ${r.detail.length}`);
 });
 
+test("binaryAvailable: keeps the first meaningful line, dropping a trailing dump", () => {
+  // A short, useful error followed by a tens-of-KB dump: detail must be the
+  // first line, not the dump. Pins the split/trim/find core independently of
+  // the length cap (guards against a first→last / join regression).
+  const r = binaryAvailable(NODE, [
+    "-e",
+    "console.error('short error\\n' + 'X'.repeat(100000)); process.exit(1)"
+  ]);
+  assert.equal(r.available, false);
+  assert.equal(r.detail, "short error");
+});
+
 test("binaryAvailable: a whitespace-only preferred stream falls through to the other", () => {
   // failure: stderr is whitespace-only, the real error is on stdout
   const fail = binaryAvailable(NODE, [
