@@ -35,19 +35,34 @@ export function runCommandChecked(command, args = [], options = {}) {
   return result;
 }
 
+// Cap detail to the first non-empty line (≤500 chars): a crashing binary can
+// dump tens of KB to stderr (e.g. its own minified source). Per-stream .trim()
+// runs before summarizing, so a whitespace-only preferred stream still falls
+// through to the other stream instead of collapsing to the fallback.
+const MAX_DETAIL_LENGTH = 500;
+
+function summarizeDetail(text, fallback = "") {
+  const firstLine = String(text ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find(Boolean);
+  const value = firstLine || fallback;
+  return value.length > MAX_DETAIL_LENGTH ? `${value.slice(0, MAX_DETAIL_LENGTH - 1)}…` : value;
+}
+
 export function binaryAvailable(command, versionArgs = ["--version"], options = {}) {
   const result = runCommand(command, versionArgs, options);
   if (result.error && /** @type {NodeJS.ErrnoException} */ (result.error).code === "ENOENT") {
     return { available: false, detail: "not found" };
   }
   if (result.error) {
-    return { available: false, detail: result.error.message };
+    return { available: false, detail: summarizeDetail(result.error.message, "error") };
   }
   if (result.status !== 0) {
-    const detail = result.stderr.trim() || result.stdout.trim() || `exit ${result.status}`;
+    const detail = summarizeDetail(result.stderr.trim() || result.stdout.trim(), `exit ${result.status}`);
     return { available: false, detail };
   }
-  return { available: true, detail: result.stdout.trim() || result.stderr.trim() || "ok" };
+  return { available: true, detail: summarizeDetail(result.stdout.trim() || result.stderr.trim(), "ok") };
 }
 
 function looksLikeMissingProcessMessage(text) {

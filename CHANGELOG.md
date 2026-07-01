@@ -17,6 +17,13 @@ All notable changes to this project are documented here.
 - When `cursor-agent` can't be run and `CURSOR_AGENT_BIN` is set, the error names
   the override value instead of the generic install hint.
 
+### Fixed
+- `binaryAvailable` no longer returns a crashing binary's full stderr as
+  `detail` — a crashing CLI can emit tens of KB (e.g. its own minified source),
+  which previously flooded `/cursor:setup` output. `detail` is now the first
+  meaningful line, capped at 500 chars. Per-stream `.trim()` selection runs
+  before truncating, so a whitespace-only stream still falls through to the other.
+
 ## [0.1.2] - 2026-06-16
 
 ### Fixed
