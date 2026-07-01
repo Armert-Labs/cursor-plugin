@@ -427,6 +427,8 @@ When run inside Claude Code, the plugin uses its provided data directory instead
 | --- | --- |
 | `/cursor:*` commands don't appear | Finish `/plugin install cursor@cursor-plugin` and reload/restart Claude Code. |
 | Setup says cursor-agent is missing | Install it (step 1) and ensure it's on your `PATH` (`cursor-agent --version`). |
+| `cursor-agent` crashes on launch / macOS "could not verify… / Move to Trash" | The binary is quarantined (common with the Homebrew cask). Prefer the official installer (step 1), which installs unquarantined; or clear it: `xattr -dr com.apple.quarantine <path>`, or `brew reinstall --cask --no-quarantine cursor-cli`. The CLI is validly signed — only the quarantine flag triggers the block. |
+| Wrong/duplicate `cursor-agent` picked from `PATH` | Point the plugin at the right binary: `export CURSOR_AGENT_BIN="$HOME/.local/bin/agent"` (an absolute path, or a bare command name resolved on `PATH`). |
 | Setup says not authenticated | Run `cursor-agent login`, or set `CURSOR_API_KEY`. |
 | "Workspace Trust Required" / hard fail | The plugin always passes `--trust`; if you see this you're likely calling `cursor-agent` yourself without it. |
 | A review returns no JSON / parse error | Output is shown raw with the parse error. Re-run, or try `--model review` for a stronger model. |

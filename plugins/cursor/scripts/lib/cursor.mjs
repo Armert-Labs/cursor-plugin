@@ -1,9 +1,68 @@
 import { spawn } from "node:child_process";
+import path from "node:path";
 import process from "node:process";
 
 import { binaryAvailable, runCommand } from "./process.mjs";
 
-export const CURSOR_BIN = "cursor-agent";
+// Candidate binaries, in priority order. `cursor-agent` is the canonical name;
+// `agent` is Cursor's newer name, accepted as a fallback only if its --version
+// looks like a Cursor calver (YYYY.MM.DD) so an unrelated `agent` on PATH isn't
+// mistaken for the CLI. This shape check is the lightest sufficient guard:
+// stronger identity proofs are all worse here — `--version` carries no "cursor"
+// string to match, `--help` grepping is brittle, codesign is macOS-only (and the
+// launcher is unsigned), and a real invocation would spend credits. A wrong
+// guess also fails safe: the bad binary errors out, `/cursor:setup` shows the
+// resolved `bin`, and CURSOR_AGENT_BIN pins the right one.
+const CURSOR_BIN_CANDIDATES = [
+  { bin: "cursor-agent" },
+  { bin: "agent", verify: (detail) => /^v?\d{4}\.\d{2}\.\d{2}/.test(detail) }
+];
+
+// Decide which cursor-agent binary to invoke. CURSOR_AGENT_BIN overrides
+// everything (bare name → PATH, absolute path → as-is); a relative path with a
+// separator is rejected — spawn() would resolve it against the untrusted
+// workspace cwd — and we fall back to probing. Otherwise probe the candidates
+// and use the first that runs, so a broken/duplicate install self-heals.
+// Pure + injectable (probe/env/warn) for hermetic tests. Returns { bin, availability }.
+export function pickCursorBin({ env = process.env, probe, warn = (m) => process.emitWarning(m) } = {}) {
+  const runProbe = probe ?? ((bin) => binaryAvailable(bin, ["--version"]));
+  const override = env.CURSOR_AGENT_BIN?.trim();
+  if (override) {
+    const hasSeparator = override.includes("/") || override.includes(path.sep);
+    if (!hasSeparator || path.isAbsolute(override)) {
+      return { bin: override, availability: runProbe(override) };
+    }
+    warn(
+      `Ignoring CURSOR_AGENT_BIN="${override}": relative paths resolve against the ` +
+        "workspace dir. Use an absolute path or a bare command name."
+    );
+  }
+  let firstAvailability = null;
+  for (const candidate of CURSOR_BIN_CANDIDATES) {
+    const availability = runProbe(candidate.bin);
+    if (availability.available && (!candidate.verify || candidate.verify(availability.detail))) {
+      return { bin: candidate.bin, availability };
+    }
+    firstAvailability ??= availability;
+  }
+  return {
+    bin: CURSOR_BIN_CANDIDATES[0].bin,
+    availability: firstAvailability ?? { available: false, detail: "not found" }
+  };
+}
+
+// Resolve once per process — the chosen binary doesn't change mid-run.
+let resolvedCursor = null;
+function resolveCursor(cwd) {
+  if (!resolvedCursor) {
+    resolvedCursor = pickCursorBin({ probe: (bin) => binaryAvailable(bin, ["--version"], { cwd }) });
+  }
+  return resolvedCursor;
+}
+
+export function getCursorBin(cwd) {
+  return resolveCursor(cwd).bin;
+}
 
 export const SETUP_HINT =
   "Cursor CLI is not installed or not on PATH. Install it (e.g. `curl https://cursor.com/install -fsS | bash`), then rerun `/cursor:setup`.";
@@ -35,13 +94,21 @@ export function normalizeRequestedModel(model) {
 }
 
 export function getCursorAvailability(cwd) {
-  return binaryAvailable(CURSOR_BIN, ["--version"], { cwd });
+  const { bin, availability } = resolveCursor(cwd);
+  return { ...availability, bin };
 }
 
 export function ensureCursorAvailable(cwd) {
   const availability = getCursorAvailability(cwd);
   if (!availability.available) {
-    throw new Error(SETUP_HINT);
+    const override = process.env.CURSOR_AGENT_BIN?.trim();
+    throw new Error(
+      override
+        ? `Cursor CLI not runnable via CURSOR_AGENT_BIN="${override}" (${availability.detail}). ` +
+            "Fix the override or unset it to fall back to PATH. " +
+            SETUP_HINT
+        : SETUP_HINT
+    );
   }
   return availability;
 }
@@ -58,7 +125,7 @@ export function getCursorAuthStatus(cwd) {
     };
   }
 
-  const result = runCommand(CURSOR_BIN, ["status"], { cwd });
+  const result = runCommand(getCursorBin(cwd), ["status"], { cwd });
   const combined = `${result.stdout}\n${result.stderr}`.trim();
   const loggedIn = result.status === 0 && /logged in as/i.test(combined);
   const emailMatch = combined.match(/logged in as\s+(\S+)/i);
@@ -159,7 +226,7 @@ export async function runCursorAgent(cwd, options = {}) {
   // so a shell could otherwise interpret metacharacters in user prompts
   // (command injection). On Windows this means `cursor-agent` must be directly
   // spawnable on PATH (see README's Windows caveat).
-  const child = spawn(CURSOR_BIN, argv, {
+  const child = spawn(getCursorBin(cwd), argv, {
     cwd,
     env: process.env,
     stdio: ["ignore", "pipe", "pipe"],
